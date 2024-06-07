@@ -69,7 +69,7 @@ double* ParallelProduct_Master(double* FirstOperand, double* SecondOperand, int 
 
 // Slave processes
 void ParallelProduct_Slave() {
-	while(true) {
+	while(1) {
 		// Receiving status from master
 		MPI_Status Status;
 		int message;
@@ -97,11 +97,10 @@ int main(int argc, char* argv[])
 	MPI_Init(&argc, &argv);
 	MPI_Comm_rank(MPI_COMM_WORLD, &ProcessID);
 	MPI_Comm_size(MPI_COMM_WORLD, &Processes);
-	int Size = 6;
-    double* Value = (double*)calloc(Size, sizeof(double));
 
 	// Master process
 	if(ProcessID == 0) {
+		int Size = 6;
 	    double* First = (double*)calloc(Size, sizeof(double));
 		double* Second = (double*)calloc(Size, sizeof(double));
 	    for(int index = 0; index < Size; index++) {
@@ -110,7 +109,9 @@ int main(int argc, char* argv[])
 	    }
 
 	    double* Product= ParallelProduct_Master(First, Second, Size);
-	    MPI_Allreduce(&Product, &Value, Size, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+		for(int index = 0; index < Size; index++) {
+			printf("%f ", Product[index]);
+		}
 	}
 
 	// Slave processes
@@ -118,9 +119,7 @@ int main(int argc, char* argv[])
 		ParallelProduct_Slave();
 	}
 
-	for(int index = 0; index < Size; index++) {
-		printf("%f ", Value[index]);
-	}
+
 
 	MPI_Finalize();
 
