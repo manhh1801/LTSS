@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include "../lib/mpi.h"
+// #include "../lib/mpi.h"
+#include <mpi.h>
 
 /* Process information */
 int ProcessID, Processes;
@@ -61,7 +62,7 @@ int main(int argc, char** argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &Processes);
 
     /* Master */
-    if(ProcessID) {
+    if(ProcessID == 0) {
         /* Validating terminal arguments */
 
 
@@ -206,7 +207,7 @@ int main(int argc, char** argv) {
         //
         //     /* Sending partial derivatives to master */
         //     MPI_Send(PartialDerivatives, Features, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
-        }
+        // }
     }
 
     /* Shutting down parallel environment */
