@@ -93,16 +93,16 @@ int main(int argc, char** argv) {
             }
         }
 
-        // /* Gradient Descent */
-        // double LearningRate = 0.0001;
-        // double AcceptedError = 0.01;
-        // double* Parameters = calloc(Features, sizeof(double));
-        // double* Derivatives = calloc(Features, sizeof(double));
-        // for(int feature = 0; feature < Features; feature++) {
-        //     Parameters[feature] = 1;
-        //     Derivatives[feature] = 1;
-        // }
-        // int loop = 0;
+        /* Gradient Descent */
+        double LearningRate = 0.0001;
+        double AcceptedError = 0.01;
+        double* Parameters = calloc(Features, sizeof(double));
+        double* Derivatives = calloc(Features, sizeof(double));
+        for(int feature = 0; feature < Features; feature++) {
+            Parameters[feature] = 1;
+            Derivatives[feature] = 1;
+        }
+        int loop = 0;
         // while(1) {
         //     /* Checking for loop exit */
         //     int exit = 1;
@@ -151,8 +151,8 @@ int main(int argc, char** argv) {
             }
             printf(" ]\n");
         }
-        // printf("\n>> Linear regression calculating with gradient descent, learning rate %.4f, accepted error %.4f.\n", LearningRate, AcceptedError);
-        // printf("   Bias and parameters after %d loops:\n", loop);
+        printf("\n>> Linear regression calculating with gradient descent, learning rate %.4f, accepted error %.4f.\n", LearningRate, AcceptedError);
+        printf("   Bias and parameters after %d loops:\n", loop);
         // printf("    [");
         // printf(" %.4f |", Parameters[0]);
         // for(int index = 1; index < Features + 1; index++) {
@@ -183,6 +183,7 @@ int main(int argc, char** argv) {
             MPI_Recv(Input, Features, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, NULL);
             MPI_Recv(&Output, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, NULL);
             DataPoint.Input = Input; DataPoint.Output = Output;
+            DataSet[task] = DataPoint;
         }
         for(int task =0; task < TaskCount; task++) {
             printf("[%d]: %f -", ProcessID, DataSet[task].Output);
