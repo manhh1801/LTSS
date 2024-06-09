@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-// #include "../lib/mpi.h"
-#include <mpi.h>
+#include "../lib/mpi.h"
+// #include <mpi.h>
 
 /* Process information */
 int ProcessID, Processes;
@@ -36,12 +36,13 @@ Data* parseFile(int* Size, int Features, char* FilePath) {
         char* buffer = calloc(1024, sizeof(char));
         fgets(buffer, 1024, File);
         char* value = strtok(buffer, ",");
+        if(value == NULL) { break; }
         DataPoint.Output = atof(value);
-        if(fabs(DataPoint.Output) < 0.000001) { break; }
         DataPoint.Input = (double*)calloc(Features, sizeof(double));
         DataPoint.Input[0] = 1;
         for(int index = 1; index < Features; index++) {
             value = strtok(NULL, ",");
+            if(value == NULL) { break; }
             DataPoint.Input[index] = atof(value);
         }
         DataSet[*Size] = DataPoint;
@@ -70,7 +71,15 @@ int main(int argc, char** argv) {
         Data* DataSet = NULL;
         int Size = 0;
         int Features = atoi(argv[1]) + 1;
-        DataSet = parseFile(&Size, Features, argv[2]);
+        DataSet = (Data*)parseFile(&Size, Features, argv[2]);
+
+        for(int index = 0; index < Size; index++) {
+            printf("%f:", DataSet[index].Output);
+            for(int feature = 0; feature < Features; feature++) {
+                printf(" %f", DataSet[index].Input[feature]);
+            }
+            printf("\n");
+        }
 
         // /* Assigning tasks */
         // TaskAssignment Tasks[Processes];
