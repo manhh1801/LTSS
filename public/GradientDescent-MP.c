@@ -136,11 +136,6 @@ int main(int argc, char** argv) {
 
             /* Updating parameters */
             for(int feature = 0; feature < Features; feature++) { Parameters[feature] -= LearningRate * Derivatives[feature]; }
-            printf("[0]:");
-            for(int feature = 0; feature < Features; feature++) {
-                printf(" %f", Parameters[feature]);
-            }
-            printf("\n");
 
             /* Updating loop count */
             loop += 1;
