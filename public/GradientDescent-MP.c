@@ -122,12 +122,12 @@ int main(int argc, char** argv) {
                 }
                 Error[task] -= DataSet[task].Output;
             }
-            printf("[0]: ");
+            printf("[0] Errors: ");
             for(int task = 0; task < TaskCount; task++) {
                 printf(" %f", Error[task]);
             }
             printf("\n");
-            printf("[0]: ");
+            printf("[0] Partial Derivatives: ");
             for(int feature = 0; feature < Features; feature++) {
                 Derivatives[feature] = 0;
                 for(int task = 0; task < TaskCount; task++) { Derivatives[feature] += DataSet[task].Input[feature] * Error[task]; }
@@ -203,11 +203,6 @@ int main(int argc, char** argv) {
             /* Receiving parameters from master */
             double* Parameters = calloc(Features, sizeof(double));
             MPI_Recv(Parameters, Features, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, NULL);
-            // printf("[%d]:", ProcessID);
-            // for(int feature = 0; feature < Features; feature++) {
-            //     printf(" %f", Parameters[feature]);
-            // }
-            // printf("\n");
 
             /* Doing the calculation for the assigned tasks */
             double* Error = calloc(Features, sizeof(double));
@@ -217,9 +212,20 @@ int main(int argc, char** argv) {
                 }
                 Error[task] -= DataSet[task].Output;
             }
-            // double* PartialDerivatives = calloc(Features, sizeof(double));
-            // for(int feature = 0; feature < Features; feature++) { for(int task = 0; task < TaskCount; task++) { PartialDerivatives[feature] += DataSet[task].Input[feature] * Error[task]; } }
-            //
+            printf("[0] Errors: ");
+            for(int task = 0; task < TaskCount; task++) {
+                printf(" %f", Error[task]);
+            }
+            printf("\n");
+            double* PartialDerivatives = calloc(Features, sizeof(double));
+            printf("[0] Partial Derivatives: ");
+            for(int feature = 0; feature < Features; feature++) {
+                for(int task = 0; task < TaskCount; task++) { PartialDerivatives[feature] += DataSet[task].Input[feature] * Error[task]; }
+                printf(" %f", PartialDerivatives[feature]);
+            }
+            printf("\n");
+
+
             // /* Sending partial derivatives to master */
             // MPI_Send(PartialDerivatives, Features, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
         }
