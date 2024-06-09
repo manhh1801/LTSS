@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include "../lib/mpi.h"
-// #include <mpi.h>
+// #include "../lib/mpi.h"
+#include <mpi.h>
 
 /* Process information */
 int ProcessID, Processes;
@@ -75,10 +75,11 @@ int main(int argc, char** argv) {
         TaskAssignment Tasks[Processes];
         int quotient = Size / Processes; int remainder = Size % Processes;
         for(int process = 0; process < Processes; process++) {
-            Tasks[process].Start = quotient * process + (process < remainder ? process : remainder);
-            Tasks[process].End = Tasks[process].Start + (process < remainder ? quotient : quotient - 1);
+            int Start = quotient * process + (process < remainder ? process : remainder);
+            int End = Tasks[process].Start + (process < remainder ? quotient : quotient - 1);
             int TaskCount = Tasks[process].End - Tasks[process].Start + 1;
             MPI_Send(&TaskCount, 1, MPI_INT, process, 0, MPI_COMM_WORLD);
+            Tasks[process].Start = Start; Tasks[process].End = End;
         }
         int TaskCount = Tasks[0].End - Tasks[0].Start + 1;
         if(Size < Processes) { Processes = Size; }
@@ -172,23 +173,23 @@ int main(int argc, char** argv) {
             return 0;
         }
 
-        /* Receiving data from master */
-        Data* DataSet = calloc(TaskCount, sizeof(Data));
-        for(int task = 0; task < TaskCount; task++) {
-            Data DataPoint;
-            double* Input = (double*)calloc(Features, sizeof(double));
-            double Output = 0;
-            MPI_Recv(Input, Features, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, NULL);
-            MPI_Recv(&Output, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, NULL);
-            DataPoint.Input = Input; DataPoint.Output = Output;
-        }
-        for(int task =0; task < TaskCount; task++) {
-            printf("[%d]: %f -", ProcessID, DataSet[task].Output);
-            for(int feature = 0; feature < Features; feature++) {
-                printf(" %f", DataSet[task].Input[feature]);
-            }
-            printf("\n");
-        }
+        // /* Receiving data from master */
+        // Data* DataSet = calloc(TaskCount, sizeof(Data));
+        // for(int task = 0; task < TaskCount; task++) {
+        //     Data DataPoint;
+        //     double* Input = (double*)calloc(Features, sizeof(double));
+        //     double Output = 0;
+        //     MPI_Recv(Input, Features, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, NULL);
+        //     MPI_Recv(&Output, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, NULL);
+        //     DataPoint.Input = Input; DataPoint.Output = Output;
+        // }
+        // for(int task =0; task < TaskCount; task++) {
+        //     printf("[%d]: %f -", ProcessID, DataSet[task].Output);
+        //     for(int feature = 0; feature < Features; feature++) {
+        //         printf(" %f", DataSet[task].Input[feature]);
+        //     }
+        //     printf("\n");
+        // }
 
         // /* Gradient descent */
         // while(1) {
