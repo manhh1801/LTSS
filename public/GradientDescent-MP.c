@@ -122,15 +122,19 @@ int main(int argc, char** argv) {
                 }
                 Error[task] -= DataSet[task].Output;
             }
+            printf("[0]: ");
             for(int task = 0; task < TaskCount; task++) {
-                printf("[%d]: %d - %f\n", ProcessID, task, Error[task]);
+                printf(" %f", Error[task]);
             }
-            //
-            // for(int feature = 0; feature < Features; feature++) {
-            //     Derivatives[feature] = 0;
-            //     for(int task = 0; task < TaskCount; task++) { Derivatives[feature] += DataSet[task].Input[feature] * Error[task]; }
-            // }
-            //
+            printf("\n");
+            printf("[0]: ");
+            for(int feature = 0; feature < Features; feature++) {
+                Derivatives[feature] = 0;
+                for(int task = 0; task < TaskCount; task++) { Derivatives[feature] += DataSet[task].Input[feature] * Error[task]; }
+                printf(" %f", Derivatives[feature]);
+            }
+            printf("\n");
+
             // /* Receiving partial derivatives back from slaves and calculating derivatives */
             // for(int process = 1; process < Processes; process++) {
             //     double* PartialDerivatives = calloc(Features, sizeof(double));
@@ -212,9 +216,6 @@ int main(int argc, char** argv) {
                     Error[task] += DataSet[task].Input[feature] * Parameters[feature];
                 }
                 Error[task] -= DataSet[task].Output;
-            }
-            for(int task = 0; task < TaskCount; task++) {
-                printf("[%d]: %d - %f\n", ProcessID, task, Error[task]);
             }
             // double* PartialDerivatives = calloc(Features, sizeof(double));
             // for(int feature = 0; feature < Features; feature++) { for(int task = 0; task < TaskCount; task++) { PartialDerivatives[feature] += DataSet[task].Input[feature] * Error[task]; } }
