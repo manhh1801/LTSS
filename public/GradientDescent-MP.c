@@ -76,17 +76,14 @@ int main(int argc, char** argv) {
         /* Assigning tasks */
         TaskAssignment Tasks[Processes];
         int quotient = Size / Processes; int remainder = Size % Processes;
-        for(int process = 1; process < Processes; process++) {
+        for(int process = 0; process < Processes; process++) {
             Tasks[process].Start = quotient * process + (process < remainder ? process : remainder);
             Tasks[process].End = Tasks[process].Start + (process < remainder ? quotient : quotient - 1);
             int TaskCount = Tasks[process].End - Tasks[process].Start + 1;
             MPI_Send(&TaskCount, 1, MPI_INT, process, 0, MPI_COMM_WORLD);
         }
-
-        for(int process = 0; process < Processes; process++) {
-            printf("[Master] %d: %d - %d\n", process, Tasks[process].Start, Tasks[process].End);
-        }
-        // int TaskCount = Tasks[0].End - Tasks[0].Start + 1;
+        int TaskCount = Tasks[0].End - Tasks[0].Start + 1;
+        printf("[%d]: %d", ProcessID, TaskCount);
         // if(Size < Processes) { Processes = Size; }
         //
         // /* Sending data to slaves */
@@ -173,6 +170,7 @@ int main(int argc, char** argv) {
 
         /* Receiving task index */
         MPI_Recv(&TaskCount, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, NULL);
+        printf("[%d]: %d", ProcessID, TaskCount);
         if(TaskCount == 0) {
             MPI_Finalize();
             return 0;
