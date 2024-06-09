@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-// #include "../lib/mpi.h"
-#include <mpi.h>
+#include "../lib/mpi.h"
+// #include <mpi.h>
 
 /* Process information */
 int ProcessID, Processes;
@@ -73,16 +73,19 @@ int main(int argc, char** argv) {
         int Features = atoi(argv[1]) + 1;
         DataSet = (Data*)parseFile(&Size, Features, argv[2]);
 
-        // /* Assigning tasks */
-        // TaskAssignment Tasks[Processes];
-        // int quotient = Size / Processes; int remainder = Size % Processes;
-        // for(int process = 1; process < Processes; process++) {
-        //     Tasks[process].Start = quotient * process + (process < remainder ? process : remainder);
-        //     Tasks[process].End = Tasks[process].Start + (process < remainder ? quotient : quotient - 1);
-        //     int TaskCount = Tasks[process].End - Tasks[process].Start + 1;
-        //     MPI_Send(&TaskCount, 1, MPI_INT, process, 0, MPI_COMM_WORLD);
-        //
-        // }
+        /* Assigning tasks */
+        TaskAssignment Tasks[Processes];
+        int quotient = Size / Processes; int remainder = Size % Processes;
+        for(int process = 1; process < Processes; process++) {
+            Tasks[process].Start = quotient * process + (process < remainder ? process : remainder);
+            Tasks[process].End = Tasks[process].Start + (process < remainder ? quotient : quotient - 1);
+            int TaskCount = Tasks[process].End - Tasks[process].Start + 1;
+            MPI_Send(&TaskCount, 1, MPI_INT, process, 0, MPI_COMM_WORLD);
+        }
+
+        for(int process = 0; process < Processes; process++) {
+            printf("[Master] %d: %d - %d\n", process, Tasks[process].Start, Tasks[process].End);
+        }
         // int TaskCount = Tasks[0].End - Tasks[0].Start + 1;
         // if(Size < Processes) { Processes = Size; }
         //
@@ -164,16 +167,16 @@ int main(int argc, char** argv) {
 
     /* Slaves */
     else {
-        // /* Initializing data  */
-        // int Features = atoi(argv[1]) + 1;
-        // int TaskCount = 0;
-        //
-        // /* Receiving task index */
-        // MPI_Recv(&TaskCount, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, NULL);
-        // if(TaskCount == 0) {
-        //     MPI_Finalize();
-        //     return 0;
-        // }
+        /* Initializing data  */
+        int Features = atoi(argv[1]) + 1;
+        int TaskCount = 0;
+
+        /* Receiving task index */
+        MPI_Recv(&TaskCount, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, NULL);
+        if(TaskCount == 0) {
+            MPI_Finalize();
+            return 0;
+        }
         //
         // /* Receiving data from master */
         // Data* DataSet = calloc(TaskCount, sizeof(Data));
