@@ -83,16 +83,22 @@ int main(int argc, char** argv) {
             MPI_Send(&TaskCount, 1, MPI_INT, process, 0, MPI_COMM_WORLD);
         }
         int TaskCount = Tasks[0].End - Tasks[0].Start + 1;
-        printf("[%d]: %d", ProcessID, TaskCount);
-        // if(Size < Processes) { Processes = Size; }
-        //
-        // /* Sending data to slaves */
-        // for(int process = 1; process < Processes; process++) {
-        //     for(int task = Tasks[process].Start; task <= Tasks[process].End; task++) {
-        //         MPI_Send(DataSet[task].Input, Features, MPI_DOUBLE, process, 0, MPI_COMM_WORLD);
-        //         MPI_Send(&DataSet[task].Output, 1, MPI_DOUBLE, process, 0, MPI_COMM_WORLD);
-        //     }
-        // }
+        if(Size < Processes) { Processes = Size; }
+
+        /* Sending data to slaves */
+        for(int process = 1; process < Processes; process++) {
+            for(int task = Tasks[process].Start; task <= Tasks[process].End; task++) {
+                MPI_Send(DataSet[task].Input, Features, MPI_DOUBLE, process, 0, MPI_COMM_WORLD);
+                MPI_Send(&DataSet[task].Output, 1, MPI_DOUBLE, process, 0, MPI_COMM_WORLD);
+            }
+        }
+        for(int task =0; task < TaskCount; task++) {
+            printf("[%d]: %f -", ProcessID, DataSet[task].Output);
+            for(int feature = 0; feature < Features; feature++) {
+                printf(" %f", DataSet[task].Input[feature]);
+            }
+            printf("\n");
+        }
         //
         // /* Gradient Descent */
         // double LearningRate = 0.0001;
@@ -170,20 +176,19 @@ int main(int argc, char** argv) {
 
         /* Receiving task index */
         MPI_Recv(&TaskCount, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, NULL);
-        printf("[%d]: %d", ProcessID, TaskCount);
         if(TaskCount == 0) {
             MPI_Finalize();
             return 0;
         }
-        //
-        // /* Receiving data from master */
-        // Data* DataSet = calloc(TaskCount, sizeof(Data));
-        // for(int task = 0; task < TaskCount; task++) {
-        //     Data* DataPoint = calloc(1, sizeof(Data));
-        //     DataPoint->Input = (double*)calloc(Features, sizeof(double));
-        //     MPI_Recv(DataSet[task].Input, Features, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, NULL);
-        //     MPI_Recv(&DataSet[task].Output, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, NULL);
-        // }
+
+        /* Receiving data from master */
+        Data* DataSet = calloc(TaskCount, sizeof(Data));
+        for(int task = 0; task < TaskCount; task++) {
+            Data* DataPoint = calloc(1, sizeof(Data));
+            DataPoint->Input = (double*)calloc(Features, sizeof(double));
+            MPI_Recv(DataSet[task].Input, Features, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, NULL);
+            MPI_Recv(&DataSet[task].Output, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, NULL);
+        }
         //
         // /* Gradient descent */
         // while(1) {
