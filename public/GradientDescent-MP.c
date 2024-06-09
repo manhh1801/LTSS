@@ -135,13 +135,18 @@ int main(int argc, char** argv) {
             }
             printf("\n");
 
-            // /* Receiving partial derivatives back from slaves and calculating derivatives */
-            // for(int process = 1; process < Processes; process++) {
-            //     double* PartialDerivatives = calloc(Features, sizeof(double));
-            //     MPI_Recv(PartialDerivatives, Features, MPI_DOUBLE, process, 0, MPI_COMM_WORLD, NULL);
-            //     for(int feature = 0; feature < Features; feature++) { Derivatives[feature] -= PartialDerivatives[feature]; }
-            // }
-            //
+            /* Receiving partial derivatives back from slaves and calculating derivatives */
+            for(int process = 1; process < Processes; process++) {
+                double* PartialDerivatives = calloc(Features, sizeof(double));
+                MPI_Recv(PartialDerivatives, Features, MPI_DOUBLE, process, 0, MPI_COMM_WORLD, NULL);
+                for(int feature = 0; feature < Features; feature++) { Derivatives[feature] += PartialDerivatives[feature]; }
+            }
+            printf("[0] Derivatives: ");
+            for(int feature = 0; feature < Features; feature++) {
+                printf(" %f", Derivatives[feature]);
+            }
+            printf("\n");
+
             // /* Updating parameters */
             // for(int feature = 0; feature < Features + 1; feature++) { Parameters[feature] -= LearningRate * Derivatives[feature]; }
 
@@ -226,8 +231,8 @@ int main(int argc, char** argv) {
             printf("\n");
 
 
-            // /* Sending partial derivatives to master */
-            // MPI_Send(PartialDerivatives, Features, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+            /* Sending partial derivatives to master */
+            MPI_Send(PartialDerivatives, Features, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
         }
     }
 
