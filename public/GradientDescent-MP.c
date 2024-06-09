@@ -114,14 +114,17 @@ int main(int argc, char** argv) {
             /* Sending current parameters to slave */
             for(int process = 1; process < Processes; process++) { MPI_Send(Parameters, Features, MPI_DOUBLE, process, 0, MPI_COMM_WORLD); }
 
-            // /* Doing the calculation for the assigned tasks */
-            // double* Error = calloc(Features, sizeof(double));
-            // for(int task = 0; task < TaskCount; task++) {
-            //     for(int feature = 0; feature < Features; feature++) {
-            //         Error[task] += DataSet[task].Input[feature] * Parameters[feature];
-            //     }
-            //     Error[task] -= DataSet[task].Output;
-            // }
+            /* Doing the calculation for the assigned tasks */
+            double* Error = calloc(Features, sizeof(double));
+            for(int task = 0; task < TaskCount; task++) {
+                for(int feature = 0; feature < Features; feature++) {
+                    Error[task] += DataSet[task].Input[feature] * Parameters[feature];
+                }
+                Error[task] -= DataSet[task].Output;
+            }
+            for(int task = 0; task < TaskCount; task++) {
+                printf("[%d]: %d - %f\n", ProcessID, task, Error[task]);
+            }
             //
             // for(int feature = 0; feature < Features; feature++) {
             //     Derivatives[feature] = 0;
@@ -196,20 +199,23 @@ int main(int argc, char** argv) {
             /* Receiving parameters from master */
             double* Parameters = calloc(Features, sizeof(double));
             MPI_Recv(Parameters, Features, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, NULL);
-            printf("[%d]:", ProcessID);
-            for(int feature = 0; feature < Features; feature++) {
-                printf(" %f", Parameters[feature]);
-            }
-            printf("\n");
-
-            // /* Doing the calculation for the assigned tasks */
-            // double* Error = calloc(Features, sizeof(double));
-            // for(int task = 0; task < TaskCount; task++) {
-            //     for(int feature = 0; feature < Features; feature++) {
-            //         Error[task] += DataSet[task].Input[feature] * Parameters[feature];
-            //     }
-            //     Error[task] -= DataSet[task].Output;
+            // printf("[%d]:", ProcessID);
+            // for(int feature = 0; feature < Features; feature++) {
+            //     printf(" %f", Parameters[feature]);
             // }
+            // printf("\n");
+
+            /* Doing the calculation for the assigned tasks */
+            double* Error = calloc(Features, sizeof(double));
+            for(int task = 0; task < TaskCount; task++) {
+                for(int feature = 0; feature < Features; feature++) {
+                    Error[task] += DataSet[task].Input[feature] * Parameters[feature];
+                }
+                Error[task] -= DataSet[task].Output;
+            }
+            for(int task = 0; task < TaskCount; task++) {
+                printf("[%d]: %d - %f\n", ProcessID, task, Error[task]);
+            }
             // double* PartialDerivatives = calloc(Features, sizeof(double));
             // for(int feature = 0; feature < Features; feature++) { for(int task = 0; task < TaskCount; task++) { PartialDerivatives[feature] += DataSet[task].Input[feature] * Error[task]; } }
             //
