@@ -61,8 +61,6 @@ int main(int argc, char** argv) {
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &ProcessID);
     MPI_Comm_size(MPI_COMM_WORLD, &Processes);
-
-    /* Master */
     if(ProcessID == 0) {
         /* Validating terminal arguments */
 
@@ -85,24 +83,24 @@ int main(int argc, char** argv) {
         int TaskCount = Tasks[0].End - Tasks[0].Start + 1;
         if(Size < Processes) { Processes = Size; }
 
-        /* Sending data to slaves */
-        for(int process = 1; process < Processes; process++) {
-            for(int task = Tasks[process].Start; task <= Tasks[process].End; task++) {
-                MPI_Send(DataSet[task].Input, Features, MPI_DOUBLE, process, 0, MPI_COMM_WORLD);
-                MPI_Send(&DataSet[task].Output, 1, MPI_DOUBLE, process, 0, MPI_COMM_WORLD);
-            }
-        }
+        // /* Sending data to slaves */
+        // for(int process = 1; process < Processes; process++) {
+        //     for(int task = Tasks[process].Start; task <= Tasks[process].End; task++) {
+        //         MPI_Send(DataSet[task].Input, Features, MPI_DOUBLE, process, 0, MPI_COMM_WORLD);
+        //         MPI_Send(&DataSet[task].Output, 1, MPI_DOUBLE, process, 0, MPI_COMM_WORLD);
+        //     }
+        // }
 
-        /* Gradient Descent */
-        double LearningRate = 0.0001;
-        double AcceptedError = 0.01;
-        double* Parameters = calloc(Features, sizeof(double));
-        double* Derivatives = calloc(Features, sizeof(double));
-        for(int feature = 0; feature < Features; feature++) {
-            Parameters[feature] = 1;
-            Derivatives[feature] = 1;
-        }
-        int loop = 0;
+        // /* Gradient Descent */
+        // double LearningRate = 0.0001;
+        // double AcceptedError = 0.01;
+        // double* Parameters = calloc(Features, sizeof(double));
+        // double* Derivatives = calloc(Features, sizeof(double));
+        // for(int feature = 0; feature < Features; feature++) {
+        //     Parameters[feature] = 1;
+        //     Derivatives[feature] = 1;
+        // }
+        // int loop = 0;
         // while(1) {
         //     /* Checking for loop exit */
         //     int exit = 1;
@@ -143,16 +141,16 @@ int main(int argc, char** argv) {
         // }
         //
         /* Finishing touch */
-        printf("\n>> Dataset:\n");
-        for(int index = 0; index < Size; index++) {
-            printf("    [ %.4f |", DataSet[index].Output);
-            for(int feature = 1; feature < Features + 1; feature++) {
-                printf(" %.4f", DataSet[index].Input[feature]);
-            }
-            printf(" ]\n");
-        }
-        printf("\n>> Linear regression calculating with gradient descent, learning rate %.4f, accepted error %.4f.\n", LearningRate, AcceptedError);
-        printf("   Bias and parameters after %d loops:\n", loop);
+        // printf("\n>> Dataset:\n");
+        // for(int index = 0; index < Size; index++) {
+        //     printf("    [ %.4f |", DataSet[index].Output);
+        //     for(int feature = 1; feature < Features; feature++) {
+        //         printf(" %.4f", DataSet[index].Input[feature]);
+        //     }
+        //     printf(" ]\n");
+        // }
+        // printf("\n>> Linear regression calculating with gradient descent, learning rate %.4f, accepted error %.4f.\n", LearningRate, AcceptedError);
+        // printf("   Bias and parameters after %d loops:\n", loop);
         // printf("    [");
         // printf(" %.4f |", Parameters[0]);
         // for(int index = 1; index < Features + 1; index++) {
@@ -218,6 +216,8 @@ int main(int argc, char** argv) {
         //     MPI_Send(PartialDerivatives, Features, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
         // }
     }
+
+    /* Master */
 
     /* Shutting down parallel environment */
     MPI_Finalize();
