@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-// #include "../lib/mpi.h"
-#include <mpi.h>
+#include "../lib/mpi.h"
+// #include <mpi.h>
 
 /* Process information */
 int ProcessID, Processes;
@@ -178,11 +178,9 @@ int main(int argc, char** argv) {
         Data* DataSet = calloc(TaskCount, sizeof(Data));
         for(int task = 0; task < TaskCount; task++) {
             Data DataPoint;
-            double* Input = (double*)calloc(Features, sizeof(double));
-            double Output = 0;
-            MPI_Recv(Input, Features, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, NULL);
-            MPI_Recv(&Output, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, NULL);
-            DataPoint.Input = Input; DataPoint.Output = Output;
+            MPI_Recv(DataPoint.Input, Features, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, NULL);
+            MPI_Recv(&DataPoint.Output, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, NULL);
+            DataSet[task] = DataPoint;
         }
         for(int task =0; task < TaskCount; task++) {
             printf("[%d]: %f -", ProcessID, DataSet[task].Output);
