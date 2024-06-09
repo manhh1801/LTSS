@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include "../lib/mpi.h"
-// #include <mpi.h>
+// #include "../lib/mpi.h"
+#include <mpi.h>
 
 /* Process information */
 int ProcessID, Processes;
@@ -72,14 +72,6 @@ int main(int argc, char** argv) {
         int Size = 0;
         int Features = atoi(argv[1]) + 1;
         DataSet = (Data*)parseFile(&Size, Features, argv[2]);
-
-        for(int index = 0; index < Size; index++) {
-            printf("%f:", DataSet[index].Output);
-            for(int feature = 0; feature < Features; feature++) {
-                printf(" %f", DataSet[index].Input[feature]);
-            }
-            printf("\n");
-        }
 
         // /* Assigning tasks */
         // TaskAssignment Tasks[Processes];
@@ -151,15 +143,15 @@ int main(int argc, char** argv) {
         //     loop += 1;
         // }
         //
-        // /* Finishing touch */
-        // printf("\n>> Dataset:\n");
-        // for(int rindex = 0; rindex < Size; rindex++) {
-        //     printf("    [ %.4f |", DataSet[rindex].Output);
-        //     for(int cindex = 1; cindex < Features + 1; cindex++) {
-        //         printf(" %.4f", DataSet[rindex].Input[cindex]);
-        //     }
-        //     printf(" ]\n");
-        // }
+        /* Finishing touch */
+        printf("\n>> Dataset:\n");
+        for(int index = 0; index < Size; index++) {
+            printf("    [ %.4f |", DataSet[index].Output);
+            for(int feature = 1; feature < Features + 1; feature++) {
+                printf(" %.4f", DataSet[index].Input[feature]);
+            }
+            printf(" ]\n");
+        }
         // printf("\n>> Linear regression calculating with gradient descent, learning rate %.4f, accepted error %.4f.\n", LearningRate, AcceptedError);
         // printf("   Bias and parameters after %d loops:\n", loop);
         // printf("    [");
