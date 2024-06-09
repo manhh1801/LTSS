@@ -122,18 +122,10 @@ int main(int argc, char** argv) {
                 }
                 Error[task] -= DataSet[task].Output;
             }
-            printf("[0] Errors: ");
-            for(int task = 0; task < TaskCount; task++) {
-                printf(" %f", Error[task]);
-            }
-            printf("\n");
-            printf("[0] Partial Derivatives: ");
             for(int feature = 0; feature < Features; feature++) {
                 Derivatives[feature] = 0;
                 for(int task = 0; task < TaskCount; task++) { Derivatives[feature] += DataSet[task].Input[feature] * Error[task]; }
-                printf(" %f", Derivatives[feature]);
             }
-            printf("\n");
 
             /* Receiving partial derivatives back from slaves and calculating derivatives */
             for(int process = 1; process < Processes; process++) {
@@ -141,14 +133,14 @@ int main(int argc, char** argv) {
                 MPI_Recv(PartialDerivatives, Features, MPI_DOUBLE, process, 0, MPI_COMM_WORLD, NULL);
                 for(int feature = 0; feature < Features; feature++) { Derivatives[feature] += PartialDerivatives[feature]; }
             }
-            printf("[0] Derivatives: ");
+
+            /* Updating parameters */
+            for(int feature = 0; feature < Features; feature++) { Parameters[feature] -= LearningRate * Derivatives[feature]; }
+            printf("[0]:");
             for(int feature = 0; feature < Features; feature++) {
-                printf(" %f", Derivatives[feature]);
+                printf(" %f", Parameters[feature]);
             }
             printf("\n");
-
-            // /* Updating parameters */
-            // for(int feature = 0; feature < Features + 1; feature++) { Parameters[feature] -= LearningRate * Derivatives[feature]; }
 
             // /* Updating loop count */
             // loop += 1;
@@ -217,18 +209,11 @@ int main(int argc, char** argv) {
                 }
                 Error[task] -= DataSet[task].Output;
             }
-            printf("[0] Errors: ");
-            for(int task = 0; task < TaskCount; task++) {
-                printf(" %f", Error[task]);
-            }
-            printf("\n");
             double* PartialDerivatives = calloc(Features, sizeof(double));
-            printf("[0] Partial Derivatives: ");
             for(int feature = 0; feature < Features; feature++) {
+                PartialDerivatives[feature] = 0;
                 for(int task = 0; task < TaskCount; task++) { PartialDerivatives[feature] += DataSet[task].Input[feature] * Error[task]; }
-                printf(" %f", PartialDerivatives[feature]);
             }
-            printf("\n");
 
 
             /* Sending partial derivatives to master */
