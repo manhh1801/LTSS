@@ -154,7 +154,7 @@ int main(int argc, char** argv) {
         printf("   Bias and parameters after %d loops:\n", loop);
         printf("    [");
         printf(" %.4f |", Parameters[0]);
-        for(int index = 1; index < Features + 1; index++) {
+        for(int index = 1; index < Features; index++) {
             printf(" %.4f", Parameters[index]);
         }
         printf(" ]\n");
