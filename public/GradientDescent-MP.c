@@ -64,9 +64,7 @@ int main(int argc, char** argv) {
 
     /* Master */
     if(ProcessID == 0) {
-        double Start = MPI_Wtime();
-
-       /* Initializing data  */
+        /* Initializing data  */
         Data* DataSet = NULL;
         int Size = 0;
         int Features = atoi(argv[1]) + 1;
@@ -93,8 +91,8 @@ int main(int argc, char** argv) {
         }
 
         /* Gradient Descent */
-        double LearningRate = atof(argv[3]);
-        double AcceptedError = atof(argv[4]);
+        double LearningRate = 0.0001;
+        double AcceptedError = 0.01;
         double* Parameters = calloc(Features, sizeof(double));
         double* Derivatives = calloc(Features, sizeof(double));
         for(int feature = 0; feature < Features; feature++) {
@@ -106,7 +104,7 @@ int main(int argc, char** argv) {
             /* Checking for loop exit */
             int exit = 1;
             for(int feature = 0; feature < Features; feature++) { if(fabs(Derivatives[feature]) > AcceptedError) { exit = 0; } }
-            exit = exit == 1 || loop == 1000000000 ? 1 : 0;
+            exit = exit == 1 || loop == INT_MAX ? 1 : 0;
             for(int process = 1; process < Processes; process++) { MPI_Send(&exit, 1, MPI_INT, process, 0, MPI_COMM_WORLD); }
             if(exit == 1) { break; }
 
@@ -140,11 +138,9 @@ int main(int argc, char** argv) {
             loop += 1;
         }
 
-        double End = MPI_Wtime();
-
         /* Finishing touch */
-        printf("\n>> Linear regression calculating with gradient descent, learning rate %f, accepted error %f.\n", LearningRate, AcceptedError);
-        printf("   [ Bias | Parameter ] after %d loops in %f:\n", loop, End - Start);
+        printf("\n>> Linear regression calculating with gradient descent, learning rate %.4f, accepted error %.4f.\n", LearningRate, AcceptedError);
+        printf("   Bias and parameters after %d loops:\n", loop);
         printf("    [");
         printf(" %.4f |", Parameters[0]);
         for(int index = 1; index < Features; index++) {
