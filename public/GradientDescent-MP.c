@@ -74,15 +74,15 @@ int main(int argc, char** argv) {
             printf("Cannot open file.");
             exit = 1;
         }
-        if(argv[1] <= 0) {
+        if(atof(argv[1]) <= 0) {
             printf("Insufficient number of features.");
             exit = 1;
         }
-        else if(argv[3] <= 0) {
+        else if(atof(argv[3]) <= 0) {
             printf("Insufficient learning rate.");
             exit = 1;
         }
-        else if(argv[4] <= 0) {
+        else if(atof(argv[4]) <= 0) {
             printf("Insufficient accepted error value.");
             exit = 1;
         }
