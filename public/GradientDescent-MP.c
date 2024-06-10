@@ -26,18 +26,18 @@ typedef struct {
 /* Parsing input from file */
 Data* parseFile(int* Size, int Features, char* FilePath) {
     /* Initializing */
-    Data* DataSet = calloc(1024, sizeof(Data));
+    Data* DataSet = NULL;
     *Size = 0;
-    realloc()
 
     /* Processing */
     FILE* File = fopen(FilePath, "r");
     while(!feof(File)) {
         Data DataPoint;
-        char* buffer = calloc(1024, sizeof(char));
+        char* buffer = (char*)calloc(1024, sizeof(char));
         fgets(buffer, 1024, File);
         char* value = strtok(buffer, ",");
         if(value == NULL) { break; }
+        DataSet = (Data*)realloc(DataSet, (*Size + 1) * sizeof(Data));
         DataPoint.Output = atof(value);
         DataPoint.Input = (double*)calloc(Features, sizeof(double));
         DataPoint.Input[0] = 1;
@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
         DataSet = (Data*)parseFile(&Size, Features, argv[2]);
 
         /* Assigning tasks */
-        TaskAssignment Tasks[Processes];
+        TaskAssignment* Tasks = (TaskAssignment*)calloc(Processes, sizeof(TaskAssignment));
         int quotient = Size / Processes; int remainder = Size % Processes;
         for(int process = 0; process < Processes; process++) {
             Tasks[process].Start = quotient * process + (process < remainder ? process : remainder);
@@ -98,8 +98,8 @@ int main(int argc, char** argv) {
         /* Gradient Descent */
         double LearningRate = 0.0001;
         double AcceptedError = 0.01;
-        double* Parameters = calloc(Features, sizeof(double));
-        double* Derivatives = calloc(Features, sizeof(double));
+        double* Parameters = (double*)calloc(Features, sizeof(double));
+        double* Derivatives = (double*)calloc(Features, sizeof(double));
         for(int feature = 0; feature < Features; feature++) {
             Parameters[feature] = 1;
             Derivatives[feature] = 1;
@@ -117,7 +117,7 @@ int main(int argc, char** argv) {
             for(int process = 1; process < Processes; process++) { MPI_Send(Parameters, Features, MPI_DOUBLE, process, 0, MPI_COMM_WORLD); }
 
             /* Doing the calculation for the assigned tasks */
-            double* Error = calloc(Features, sizeof(double));
+            double* Error = (double*)calloc(Features, sizeof(double));
             for(int task = 0; task < TaskCount; task++) {
                 for(int feature = 0; feature < Features; feature++) {
                     Error[task] += DataSet[task].Input[feature] * Parameters[feature];
@@ -131,7 +131,7 @@ int main(int argc, char** argv) {
 
             /* Receiving partial derivatives back from slaves and calculating derivatives */
             for(int process = 1; process < Processes; process++) {
-                double* PartialDerivatives = calloc(Features, sizeof(double));
+                double* PartialDerivatives = (double*)calloc(Features, sizeof(double));
                 MPI_Recv(PartialDerivatives, Features, MPI_DOUBLE, process, 0, MPI_COMM_WORLD, NULL);
                 for(int feature = 0; feature < Features; feature++) { Derivatives[feature] += PartialDerivatives[feature]; }
             }
@@ -173,7 +173,7 @@ int main(int argc, char** argv) {
         }
 
         /* Receiving data from master */
-        Data* DataSet = calloc(TaskCount, sizeof(Data));
+        Data* DataSet = (Data*)calloc(TaskCount, sizeof(Data));
         for(int task = 0; task < TaskCount; task++) {
             Data DataPoint;
             double* Input = (double*)calloc(Features, sizeof(double));
@@ -192,18 +192,18 @@ int main(int argc, char** argv) {
             if(exit == 1) { break; }
 
             /* Receiving parameters from master */
-            double* Parameters = calloc(Features, sizeof(double));
+            double* Parameters = (double*)calloc(Features, sizeof(double));
             MPI_Recv(Parameters, Features, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, NULL);
 
             /* Doing the calculation for the assigned tasks */
-            double* Error = calloc(Features, sizeof(double));
+            double* Error = (double*)calloc(Features, sizeof(double));
             for(int task = 0; task < TaskCount; task++) {
                 for(int feature = 0; feature < Features; feature++) {
                     Error[task] += DataSet[task].Input[feature] * Parameters[feature];
                 }
                 Error[task] -= DataSet[task].Output;
             }
-            double* PartialDerivatives = calloc(Features, sizeof(double));
+            double* PartialDerivatives = (double*)calloc(Features, sizeof(double));
             for(int feature = 0; feature < Features; feature++) {
                 PartialDerivatives[feature] = 0;
                 for(int task = 0; task < TaskCount; task++) { PartialDerivatives[feature] += DataSet[task].Input[feature] * Error[task]; }
