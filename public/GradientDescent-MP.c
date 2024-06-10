@@ -40,10 +40,10 @@ Data* parseFile(int* Size, int Features, char* FilePath) {
         DataPoint.Output = atof(value);
         DataPoint.Input = (double*)calloc(Features, sizeof(double));
         DataPoint.Input[0] = 1;
-        for(int index = 1; index < Features; index++) {
+        for(int feature = 1; feature < Features; feature++) {
             value = strtok(NULL, ",");
             if(value == NULL) { break; }
-            DataPoint.Input[index] = atof(value);
+            DataPoint.Input[feature] = atof(value);
         }
         DataSet[*Size] = DataPoint;
         *Size += 1;
@@ -64,6 +64,8 @@ int main(int argc, char** argv) {
 
     /* Master */
     if(ProcessID == 0) {
+        double Start = MPI_Wtime();
+
         /* Initializing data  */
         Data* DataSet = NULL;
         int Size = 0;
@@ -104,7 +106,7 @@ int main(int argc, char** argv) {
             /* Checking for loop exit */
             int exit = 1;
             for(int feature = 0; feature < Features; feature++) { if(fabs(Derivatives[feature]) > AcceptedError) { exit = 0; } }
-            exit = exit == 1 || loop == INT_MAX ? 1 : 0;
+            exit = exit == 1 || loop == 100000000 ? 1 : 0;
             for(int process = 1; process < Processes; process++) { MPI_Send(&exit, 1, MPI_INT, process, 0, MPI_COMM_WORLD); }
             if(exit == 1) { break; }
 
@@ -125,8 +127,9 @@ int main(int argc, char** argv) {
             }
 
             /* Receiving partial derivatives back from slaves and calculating derivatives */
+            double* PartialDerivatives = calloc(Features, sizeof(double));
             for(int process = 1; process < Processes; process++) {
-                double* PartialDerivatives = calloc(Features, sizeof(double));
+                for(int feature = 0; feature < Features; feature++) { PartialDerivatives[feature] = 0; }
                 MPI_Recv(PartialDerivatives, Features, MPI_DOUBLE, process, 0, MPI_COMM_WORLD, NULL);
                 for(int feature = 0; feature < Features; feature++) { Derivatives[feature] += PartialDerivatives[feature]; }
             }
@@ -137,10 +140,11 @@ int main(int argc, char** argv) {
             /* Updating loop count */
             loop += 1;
         }
+        double End = MPI_Wtime();
 
         /* Finishing touch */
-        printf("\n>> Linear regression calculating with gradient descent, learning rate %.4f, accepted error %.4f.\n", LearningRate, AcceptedError);
-        printf("   Bias and parameters after %d loops:\n", loop);
+        printf("\n>> Linear regression calculating with gradient descent, learning rate %f, accepted error %f.\n", LearningRate, AcceptedError);
+        printf("   Bias and parameters after %d loops in %f:\n", loop, End - Start);
         printf("    [");
         printf(" %.4f |", Parameters[0]);
         for(int index = 1; index < Features; index++) {
