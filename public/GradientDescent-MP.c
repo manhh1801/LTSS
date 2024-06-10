@@ -64,25 +64,40 @@ int main(int argc, char** argv) {
 
     /* Master */
     if(ProcessID == 0) {
-        double Start = MPI_Wtime();
+        /* Initializing time counter */
+        double TotalTime = 0;
+        double Start, End;
+        // double ProgramStart = MPI_Wtime();
 
         /* Initializing data  */
+        Start = MPI_Wtime(); //
         Data* DataSet = NULL;
         int Size = 0;
         int Features = atoi(argv[1]) + 1;
         DataSet = (Data*)parseFile(&Size, Features, argv[2]);
+        End = MPI_Wtime(); //
+        TotalTime += End - Start; //
 
         /* Assigning tasks */
+        Start = MPI_Wtime(); //
         TaskAssignment Tasks[Processes];
         int quotient = Size / Processes; int remainder = Size % Processes;
+        End = MPI_Wtime(); //
+        TotalTime += End - Start; //
         for(int process = 0; process < Processes; process++) {
+            Start = MPI_Wtime(); //
             Tasks[process].Start = quotient * process + (process < remainder ? process : remainder);
             Tasks[process].End = Tasks[process].Start + (process < remainder ? quotient : quotient - 1);
             int TaskCount = Tasks[process].End - Tasks[process].Start + 1;
+            End = MPI_Wtime(); //
+            TotalTime += End - Start; //
             MPI_Send(&TaskCount, 1, MPI_INT, process, 0, MPI_COMM_WORLD);
         }
+        Start = MPI_Wtime(); //
         int TaskCount = Tasks[0].End - Tasks[0].Start + 1;
         if(Size < Processes) { Processes = Size; }
+        End = MPI_Wtime(); //
+        TotalTime += End - Start; //
 
         /* Sending data to slaves */
         for(int process = 1; process < Processes; process++) {
@@ -93,6 +108,7 @@ int main(int argc, char** argv) {
         }
 
         /* Gradient Descent */
+        Start = MPI_Wtime(); //
         double LearningRate = 0.0001;
         double AcceptedError = 0.01;
         double* Parameters = calloc(Features, sizeof(double));
@@ -102,18 +118,27 @@ int main(int argc, char** argv) {
             Derivatives[feature] = 1;
         }
         int loop = 0;
+        End = MPI_Wtime(); //
+        TotalTime += End - Start; //
         while(1) {
             /* Checking for loop exit */
+            Start = MPI_Wtime(); //
             int exit = 1;
             for(int feature = 0; feature < Features; feature++) { if(fabs(Derivatives[feature]) > AcceptedError) { exit = 0; } }
             exit = exit == 1 || loop == 100000000 ? 1 : 0;
+            End = MPI_Wtime(); //
+            TotalTime += End - Start; //
             for(int process = 1; process < Processes; process++) { MPI_Send(&exit, 1, MPI_INT, process, 0, MPI_COMM_WORLD); }
+            Start = MPI_Wtime(); //
             if(exit == 1) { break; }
+            End = MPI_Wtime(); //
+            TotalTime += End - Start; //
 
             /* Sending current parameters to slave */
             for(int process = 1; process < Processes; process++) { MPI_Send(Parameters, Features, MPI_DOUBLE, process, 0, MPI_COMM_WORLD); }
 
             /* Doing the calculation for the assigned tasks */
+            Start = MPI_Wtime(); //
             double* Error = calloc(Features, sizeof(double));
             for(int task = 0; task < TaskCount; task++) {
                 for(int feature = 0; feature < Features; feature++) {
@@ -125,26 +150,42 @@ int main(int argc, char** argv) {
                 Derivatives[feature] = 0;
                 for(int task = 0; task < TaskCount; task++) { Derivatives[feature] += DataSet[task].Input[feature] * Error[task]; }
             }
+            End = MPI_Wtime(); //
+            TotalTime += End - Start; //
 
             /* Receiving partial derivatives back from slaves and calculating derivatives */
-            double* PartialDerivatives = calloc(Features, sizeof(double));
             for(int process = 1; process < Processes; process++) {
-                for(int feature = 0; feature < Features; feature++) { PartialDerivatives[feature] = 0; }
+                Start = MPI_Wtime(); //
+                double* PartialDerivatives = calloc(Features, sizeof(double));
+                End = MPI_Wtime(); //
+                TotalTime += End - Start; //
                 MPI_Recv(PartialDerivatives, Features, MPI_DOUBLE, process, 0, MPI_COMM_WORLD, NULL);
+                Start = MPI_Wtime(); //
                 for(int feature = 0; feature < Features; feature++) { Derivatives[feature] += PartialDerivatives[feature]; }
+                End = MPI_Wtime(); //
+                TotalTime += End - Start; //
             }
 
             /* Updating parameters */
+            Start = MPI_Wtime(); //
             for(int feature = 0; feature < Features; feature++) { Parameters[feature] -= LearningRate * Derivatives[feature]; }
+            End = MPI_Wtime(); //
+            TotalTime += End - Start; //
 
             /* Updating loop count */
+            Start = MPI_Wtime(); //
             loop += 1;
+            End = MPI_Wtime(); //
+            TotalTime += End - Start; //
         }
-        double End = MPI_Wtime();
+
+        /* Measuring time */
+        //double ProgramEnd = MPI_Wtime();
+        //TotalTime = ProgramEnd - ProgramStart;
 
         /* Finishing touch */
         printf("\n>> Linear regression calculating with gradient descent, learning rate %f, accepted error %f.\n", LearningRate, AcceptedError);
-        printf("   Bias and parameters after %d loops in %f:\n", loop, End - Start);
+        printf("   Bias and parameters after %d loops in %f:\n", loop, TotalTime);
         printf("    [");
         printf(" %.4f |", Parameters[0]);
         for(int index = 1; index < Features; index++) {
