@@ -26,7 +26,7 @@ typedef struct {
 /* Parsing input from file */
 Data* parseFile(int* Size, int Features, char* FilePath) {
     /* Initializing*/
-    Data* DataSet = calloc(1024, sizeof(Data));
+    Data* DataSet = calloc(1000000, sizeof(Data));
     *Size = 0;
 
     /* Processing */
@@ -45,6 +45,7 @@ Data* parseFile(int* Size, int Features, char* FilePath) {
             if(value == NULL) { break; }
             DataPoint.Input[index] = atof(value);
         }
+        free(buffer);
         DataSet[*Size] = DataPoint;
         *Size += 1;
     }
@@ -64,10 +65,7 @@ int main(int argc, char** argv) {
 
     /* Master */
     if(ProcessID == 0) {
-        /* Validating terminal arguments */
-
-
-        /* Initializing data  */
+       /* Initializing data  */
         Data* DataSet = NULL;
         int Size = 0;
         int Features = atoi(argv[1]) + 1;
@@ -94,8 +92,8 @@ int main(int argc, char** argv) {
         }
 
         /* Gradient Descent */
-        double LearningRate = 0.0001;
-        double AcceptedError = 0.01;
+        double LearningRate = 0.000001;
+        double AcceptedError = 0.0001;
         double* Parameters = calloc(Features, sizeof(double));
         double* Derivatives = calloc(Features, sizeof(double));
         for(int feature = 0; feature < Features; feature++) {
@@ -142,22 +140,15 @@ int main(int argc, char** argv) {
         }
 
         /* Finishing touch */
-        printf("\n>> Dataset [ Output | Input ]:\n");
-        for(int index = 0; index < Size; index++) {
-            printf("    [ %.4f |", DataSet[index].Output);
-            for(int feature = 1; feature < Features; feature++) {
-                printf(" %.4f", DataSet[index].Input[feature]);
-            }
-            printf(" ]\n");
-        }
         printf("\n>> Linear regression calculating with gradient descent, learning rate %.4f, accepted error %.4f.\n", LearningRate, AcceptedError);
-        printf("   Bias and parameters after %d loops:\n", loop);
+        printf("   [ Bias | Parameter ] after %d loops:\n", loop);
         printf("    [");
         printf(" %.4f |", Parameters[0]);
         for(int index = 1; index < Features; index++) {
             printf(" %.4f", Parameters[index]);
         }
         printf(" ]\n");
+        printf("\n");
     }
 
     /* Slaves */
