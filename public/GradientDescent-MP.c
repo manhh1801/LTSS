@@ -45,7 +45,6 @@ Data* parseFile(int* Size, int Features, char* FilePath) {
             if(value == NULL) { break; }
             DataPoint.Input[index] = atof(value);
         }
-        free(buffer);
         DataSet[*Size] = DataPoint;
         *Size += 1;
     }
@@ -66,33 +65,6 @@ int main(int argc, char** argv) {
     /* Master */
     if(ProcessID == 0) {
         double Start = MPI_Wtime();
-
-        // /* Validating terminal arguments */
-        // int exit = 0;
-        // FILE* File = fopen(argv[2], "r");
-        // if(File == NULL) {
-        //     printf("Cannot open file.");
-        //     exit = 1;
-        // }
-        // if(atoi(argv[1]) <= 0) {
-        //     printf("Insufficient number of features.");
-        //     exit = 1;
-        // }
-        // else if(atof(argv[3]) <= 0) {
-        //     printf("Insufficient learning rate.");
-        //     exit = 1;
-        // }
-        // else if(atof(argv[4]) <= 0) {
-        //     printf("Insufficient accepted error value.");
-        //     exit = 1;
-        // }
-        // for(int process = 1; process < Processes; process++) {
-        //     MPI_Send(&exit, 1, MPI_INT, process, 0, MPI_COMM_WORLD);
-        // }
-        // if(exit == 1) {
-        //     MPI_Finalize();
-        //     return 0;
-        // }
 
        /* Initializing data  */
         Data* DataSet = NULL;
@@ -184,14 +156,6 @@ int main(int argc, char** argv) {
 
     /* Slaves */
     else {
-        // /* Validating terminal arguments */
-        // int exit = 0;
-        // MPI_Recv(&exit, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, NULL);
-        // if(exit == 1) {
-        //     MPI_Finalize();
-        //     return 0;
-        // }
-
         /* Initializing data  */
         int Features = atoi(argv[1]) + 1;
         int TaskCount = 0;
