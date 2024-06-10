@@ -26,7 +26,7 @@ typedef struct {
 /* Parsing input from file */
 Data* parseFile(int* Size, int Features, char* FilePath) {
     /* Initializing*/
-    Data* DataSet = calloc(1000000, sizeof(Data));
+    Data* DataSet = calloc(1024, sizeof(Data));
     *Size = 0;
 
     /* Processing */
@@ -65,6 +65,35 @@ int main(int argc, char** argv) {
 
     /* Master */
     if(ProcessID == 0) {
+        double Start = MPI_Wtime();
+
+        /* Validating terminal arguments */
+        int exit = 0;
+        FILE* File = fopen(argv[2], "r");
+        if(File == NULL) {
+            printf("Cannot open file.");
+            exit = 1;
+        }
+        if(argv[1] <= 0) {
+            printf("Insufficient number of features.");
+            exit = 1;
+        }
+        else if(argv[3] <= 0) {
+            printf("Insufficient learning rate.");
+            exit = 1;
+        }
+        else if(argv[4] <= 0) {
+            printf("Insufficient accepted error value.");
+            exit = 1;
+        }
+        for(int process = 1; process < Processes; process++) {
+            MPI_Send(&exit, 1, MPI_INT, process, 0, MPI_COMM_WORLD);
+        }
+        if(exit == 1) {
+            MPI_Finalize();
+            return 0;
+        }
+
        /* Initializing data  */
         Data* DataSet = NULL;
         int Size = 0;
@@ -92,8 +121,8 @@ int main(int argc, char** argv) {
         }
 
         /* Gradient Descent */
-        double LearningRate = 0.000001;
-        double AcceptedError = 0.0001;
+        double LearningRate = atof(argv[3]);
+        double AcceptedError = atof(argv[4]);
         double* Parameters = calloc(Features, sizeof(double));
         double* Derivatives = calloc(Features, sizeof(double));
         for(int feature = 0; feature < Features; feature++) {
@@ -105,7 +134,7 @@ int main(int argc, char** argv) {
             /* Checking for loop exit */
             int exit = 1;
             for(int feature = 0; feature < Features; feature++) { if(fabs(Derivatives[feature]) > AcceptedError) { exit = 0; } }
-            exit = exit == 1 || loop == 1000000 ? 1 : 0;
+            exit = exit == 1 || loop == 1000000000 ? 1 : 0;
             for(int process = 1; process < Processes; process++) { MPI_Send(&exit, 1, MPI_INT, process, 0, MPI_COMM_WORLD); }
             if(exit == 1) { break; }
 
@@ -124,12 +153,14 @@ int main(int argc, char** argv) {
                 Derivatives[feature] = 0;
                 for(int task = 0; task < TaskCount; task++) { Derivatives[feature] += DataSet[task].Input[feature] * Error[task]; }
             }
+            free(Error);
 
             /* Receiving partial derivatives back from slaves and calculating derivatives */
             for(int process = 1; process < Processes; process++) {
                 double* PartialDerivatives = calloc(Features, sizeof(double));
                 MPI_Recv(PartialDerivatives, Features, MPI_DOUBLE, process, 0, MPI_COMM_WORLD, NULL);
                 for(int feature = 0; feature < Features; feature++) { Derivatives[feature] += PartialDerivatives[feature]; }
+                free(PartialDerivatives);
             }
 
             /* Updating parameters */
@@ -139,9 +170,11 @@ int main(int argc, char** argv) {
             loop += 1;
         }
 
+        double End = MPI_Wtime();
+
         /* Finishing touch */
-        printf("\n>> Linear regression calculating with gradient descent, learning rate %.4f, accepted error %.4f.\n", LearningRate, AcceptedError);
-        printf("   [ Bias | Parameter ] after %d loops:\n", loop);
+        printf("\n>> Linear regression calculating with gradient descent, learning rate %f, accepted error %f.\n", LearningRate, AcceptedError);
+        printf("   [ Bias | Parameter ] after %d loops in %f:\n", loop, End - Start);
         printf("    [");
         printf(" %.4f |", Parameters[0]);
         for(int index = 1; index < Features; index++) {
@@ -153,6 +186,14 @@ int main(int argc, char** argv) {
 
     /* Slaves */
     else {
+        /* Validating terminal arguments */
+        int exit = 0;
+        MPI_Recv(&exit, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, NULL);
+        if(exit == 1) {
+            MPI_Finalize();
+            return 0;
+        }
+
         /* Initializing data  */
         int Features = atoi(argv[1]) + 1;
         int TaskCount = 0;
@@ -200,9 +241,11 @@ int main(int argc, char** argv) {
                 PartialDerivatives[feature] = 0;
                 for(int task = 0; task < TaskCount; task++) { PartialDerivatives[feature] += DataSet[task].Input[feature] * Error[task]; }
             }
+            free(Error);
 
             /* Sending partial derivatives to master */
             MPI_Send(PartialDerivatives, Features, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+            free(PartialDerivatives);
         }
     }
 
