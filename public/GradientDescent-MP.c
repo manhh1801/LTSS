@@ -25,9 +25,10 @@ typedef struct {
 
 /* Parsing input from file */
 Data* parseFile(int* Size, int Features, char* FilePath) {
-    /* Initializing*/
+    /* Initializing */
     Data* DataSet = calloc(1024, sizeof(Data));
     *Size = 0;
+    realloc()
 
     /* Processing */
     FILE* File = fopen(FilePath, "r");

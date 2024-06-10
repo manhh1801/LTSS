@@ -58,13 +58,13 @@ int main(int argc, char** argv) {
     int LoopCount = 0;
     while(1) {
         // Checking for loop exit
-        bool exit = true;
+        int exit = 1;
         for(int index = 0; index < Features + 1; index++) {
             if(fabs(Derivatives[index]) > AcceptedError) {
-                exit = false;
+                exit = 0;
             }
         }
-        if(exit == true || LoopCount == 10000000) break;
+        if(exit == 1 || LoopCount == 10000000) break;
         // Calculating predicted output
         for(int datapoint_index = 0; datapoint_index < Size; datapoint_index++) {
             PredictedOutput[datapoint_index] = 0;
@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
     TotalTime = (double)(ProgramEnd - ProgramStart) / CLOCKS_PER_SEC;
 
     // Finishing touch
-    printf("\n>> Linear regression calculating with gradient descent, learning rate %.4f, accepted error %.4f.\n", LearningRate, AcceptedError);
+    printf("\n>> Linear regression calculating with gradient descent, learning rate %f, accepted error %f.\n", LearningRate, AcceptedError);
     printf("   Bias and parameters after %d loops in %f(s):\n", LoopCount, TotalTime);
     printf("    [");
     printf(" %.4f |", Parameters[0]);
