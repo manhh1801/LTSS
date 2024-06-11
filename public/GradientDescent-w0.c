@@ -73,21 +73,23 @@ int main(int argc, char** argv) {
       printf("Invalid number of arguments.");
       exit = 1;
     }
-    if(File == NULL) {
-      printf("Cannot open file.");
-      exit = 1;
-    }
-    if(atoi(argv[1]) <= 0) {
-      printf("Insufficient number of features.");
-      exit = 1;
-    }
-    else if(atof(argv[3]) <= 0) {
-      printf("Insufficient learning rate.");
-      exit = 1;
-    }
-    else if(atof(argv[4]) <= 0) {
-      printf("Insufficient accepted error value.");
-      exit = 1;
+    else {
+      if(File == NULL) {
+        printf("Cannot open file.");
+        exit = 1;
+      }
+      if(atoi(argv[1]) <= 0) {
+        printf("Insufficient number of features.");
+        exit = 1;
+      }
+      else if(atof(argv[3]) <= 0) {
+        printf("Insufficient learning rate.");
+        exit = 1;
+      }
+      else if(atof(argv[4]) <= 0) {
+        printf("Insufficient accepted error value.");
+        exit = 1;
+      }
     }
     for(int process = 1; process < Processes; process++) {
       MPI_Send(&exit, 1, MPI_INT, process, 0, MPI_COMM_WORLD);
@@ -143,8 +145,8 @@ int main(int argc, char** argv) {
 
     /* Gradient Descent */
     Start = MPI_Wtime(); //
-    double LearningRate = 0.0001;
-    double AcceptedError = 0.01;
+    double LearningRate = atof(argv[3]);
+    double AcceptedError = atof(argv[4]);
     double* Parameters = (double*)calloc(Features, sizeof(double));
     double* Derivatives = (double*)calloc(Features, sizeof(double));
     for(int feature = 0; feature < Features; feature++) {
