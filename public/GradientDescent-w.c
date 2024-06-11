@@ -223,7 +223,7 @@ int main(int argc, char** argv) {
       return 0;
     }
 
-    /* Initializing data  */
+    /* Initializing data */
     int Features = atoi(argv[1]) + 1;
     int TaskCount = 0;
 
