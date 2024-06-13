@@ -244,7 +244,7 @@ int main(int argc, char** argv) {
       printf(" %.4f", Parameters[index]);
     }
     printf(" ]\n");
-    printf("\n>> Total time: %f(s), without comp: %f(s)", TotalTimeWithComp, TotalTime);
+    printf("\n>> Total time: %f(s), without comp: %f(s).\n", TotalTimeWithComp, TotalTime);
     printf("\n");
   }
 
