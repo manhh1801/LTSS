@@ -237,7 +237,7 @@ int main(int argc, char** argv) {
 
     /* Finishing touch */
     printf("\n>> Linear regression calculating with gradient descent, learning rate %f, accepted error %f.\n", LearningRate, AcceptedError);
-    printf("   Bias and parameters after %d loops:\n", loop, TotalTime);
+    printf("   Bias and parameters after %d loops:\n", loop);
     printf("  [");
     printf(" %.4f |", Parameters[0]);
     for(int index = 1; index < Features; index++) {
